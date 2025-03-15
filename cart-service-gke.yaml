@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: cart-service
-          image: europe-west2-docker.pkg.dev/csc8113/bookstore-repo/cart-service::{{IMAGE_TAG}}
+          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/cart-service::{{IMAGE_TAG}}
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
