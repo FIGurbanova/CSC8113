@@ -1,0 +1,22 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: bookstore-cluster
+  region: eu-west-2
+  version: "1.29"
+
+iam:
+  serviceRoleARN: "arn:aws:iam::054037139574:role/EKS-Cluster-Role"
+
+managedNodeGroups:
+  - name: ng-1
+    instanceType: t3.medium
+    minSize: 2
+    maxSize: 5
+    desiredCapacity: 2
+    ssh:
+      allow: true
+      publicKeyName: CSC81113  
+    iam:
+      instanceRoleARN: "arn:aws:iam::054037139574:role/EKS-NodeGroup-Role"

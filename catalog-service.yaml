@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      containers:
+        - name: catalog-service
+          image: 054037139574.dkr.ecr.eu-west-2.amazonaws.com/catalog-service:1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5001
+          env:
+            - name: SQLALCHEMY_DATABASE_URI
+              value: "postgresql://postgres:mysecretpassword@postgres:5432/bookstore"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+spec:
+  selector:
+    app: catalog-service
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: LoadBalancer  # 对外暴露服务

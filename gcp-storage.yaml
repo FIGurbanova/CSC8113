@@ -1,0 +1,10 @@
+# gcp-storage.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: premium-rwo
+provisioner: pd.csi.storage.gke.io
+parameters:
+  type: pd-ssd
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
