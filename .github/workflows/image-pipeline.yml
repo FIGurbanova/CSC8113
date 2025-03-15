@@ -1,0 +1,109 @@
+name: Docker Build & Push to GCP Artifact Registry
+
+on:
+  workflow_dispatch:  # 允许手动触发
+  push:
+    branches:
+      - main
+    paths:
+      - 'bookstore/catalog-service/**'
+      - 'bookstore/cart-service/**'
+      - 'bookstore/frontend/**'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: ['catalog-service', 'cart-service', 'frontend']
+    defaults:
+      run:
+        working-directory: ./bookstore  # 所有步骤基于 bookstore 目录执行
+
+    steps:
+      # ----------- 1. 检出代码 -----------
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # ----------- 2. 配置 Google Cloud 环境 -----------
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}  # 使用 GitHub Secret 中的服务账号密钥
+          # 启用所需 API（仅在首次运行时需要）
+          export_default_credentials: true
+          # 可选：显式启用 API（若项目未启用）
+          run_gcloud_commands: |
+            gcloud services enable \
+              container.googleapis.com \
+              artifactregistry.googleapis.com \
+              compute.googleapis.com
+
+      # ----------- 3. 配置 Docker 客户端 -----------
+      - name: Configure Docker for Artifact Registry
+        run: |
+          # 认证 Docker 客户端
+          gcloud auth configure-docker europe-west2-docker.pkg.dev --quiet
+
+      # ----------- 4. 构建并推送镜像 -----------
+      - name: Build & Push Docker Images
+        env:
+          GCR_REGISTRY: europe-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/bookstore-repo
+          IMAGE_TAG: ${{ github.sha }}  # 使用 Git Commit SHA 作为镜像标签
+        run: |
+          case "${{ matrix.service }}" in
+            "catalog-service")
+              cd catalog-service
+              docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:$IMAGE_TAG .
+              docker push $GCR_REGISTRY/catalog-service:$IMAGE_TAG
+              ;;
+            "cart-service")
+              cd cart-service
+              docker build --platform linux/amd64 -t $GCR_REGISTRY/cart-service:$IMAGE_TAG .
+              docker push $GCR_REGISTRY/cart-service:$IMAGE_TAG
+              ;;
+            "frontend")
+              cd frontend/my-app
+              docker build --platform linux/amd64 -t $GCR_REGISTRY/frontend:$IMAGE_TAG -f ../Dockerfile \
+                --build-arg REACT_APP_API_BASE_URL=http://catalog-service:5001 \
+                --build-arg REACT_APP_ORDER_SERVICE_URL=http://cart-service:8080 .
+              docker push $GCR_REGISTRY/frontend:$IMAGE_TAG
+              ;;
+          esac
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.GCR_REGISTRY }}/${{ matrix.service }}:${{ github.sha }}
+
+  deploy-to-gke:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Kubernetes (GKE)
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}  # bookstore-gke
+          location: ${{ secrets.GKE_ZONE }}              # europe-west2（区域）
+          project_id: ${{ secrets.GCP_PROJECT_ID }}      # csc8113
+          
+      - name: Update Kubernetes Deployments
+        run: |
+          # 更新每个服务的镜像版本
+          for service in catalog-service cart-service frontend; do
+            kubectl set image deployment/$service \
+              $service=${{ secrets.GCR_REGISTRY }}/$service:${{ github.sha }} \
+              --record
+          done
+
+      - name: Verify Deployment Status
+        run: |
+          kubectl get deployments -o wide
+          kubectl get pods
