@@ -1550,7 +1550,7 @@ URL: http://localhost:9090. returns Post "http://localhost:9090/api/v1/query": d
 ##Step 1: Check If Prometheus Is Running
 ##SSH into your VM:
 
-gcloud compute ssh free-monitoring-vm --zone=europe-west2-a
+gcloud compute ssh monitoring-vm --zone=europe-west2-c
 
 ##Run the following command:
 
@@ -1591,6 +1591,7 @@ kubectl get deployment metrics-server -n kube-system
 ## Update the catalog-service-gke.yaml go to the end of file and paste the following-
 
 ---
+---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -1614,16 +1615,19 @@ spec:
 ## apply the changes
 kubectl apply -f catalog-service-gke.yaml
 
-# check if it works
+# check if it works  cpu: <unknown>/60%
 kubectl get hpa
 
 # install k6
 brew install k6
 
+# Check If k6 is Installed
+k6 version
+
 # create a k6 script-
 nano load-test.js
 
-paste the following-
+# paste the following-
 
 import http from 'k6/http';
 import { check, sleep } from 'k6';
@@ -1640,7 +1644,9 @@ export let options = {
 };
 
 export default function () {
-  let res = http.get('http://34.147.148.128/api/products');
+ // let res = http.get('http://34.147.148.128/api/products');
+ // your catalog-service external ip
+   let res = http.get('http://35.246.15.37/api/products'); 
   check(res, { 'status is 200': (r) => r.status === 200 });
   sleep(1);
 }
