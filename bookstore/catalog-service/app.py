@@ -1,26 +1,11 @@
-from flask import Flask,jsonify,Response
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
 
 app = Flask(__name__)
 CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mysecretpassword@bookstore-db:5432/bookstore'
 db = SQLAlchemy(app)
-
-# Example Prometheus metric
-REQUEST_COUNT = Counter('http_requests_total', 'Total number of HTTP requests')
-
-@app.route('/metrics')
-def metrics():
-    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
-
-
-@app.route('/')
-def home():
-    REQUEST_COUNT.inc()  # Increment counter
-    return "Catalog Service Running"
-
 
 class Product(db.Model):
     __tablename__ = 'products'  # 显式指定表名
@@ -59,4 +44,3 @@ if __name__ == '__main__':
             # db.session.add(Product(name="Team Topologies", price=34.99))
             db.session.commit()
     app.run(host='0.0.0.0', port=5001)
-
