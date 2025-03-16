@@ -15,6 +15,7 @@ REQUEST_COUNT = Counter('http_requests_total', 'Total number of HTTP requests')
 def metrics():
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
+
 @app.route('/')
 def home():
     REQUEST_COUNT.inc()  # Increment counter
