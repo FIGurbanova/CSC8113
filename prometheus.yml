@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 30s  # How often to scrape targets
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'my_application'
+    static_configs:
+      - targets: ['35.246.15.37:80']  # Make sure your app exposes metrics
