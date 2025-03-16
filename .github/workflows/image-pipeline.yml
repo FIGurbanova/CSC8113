@@ -103,6 +103,20 @@ jobs:
               --record
           done
 
+      - name: Deploy Green Version
+        run: |
+          kubectl apply -f bookstore/cart-service/cart-service-green.yaml
+          kubectl set image deployment/cart-service-green cart-service=europe-west2-docker.pkg.dev/${{ secrets.GCR_REGISTRY }}/cart-service:${{ github.sha }} --record
+
+      - name: Check Green Deployment Health
+        run: |
+          kubectl rollout status deployment/cart-service-green
+
+      - name: Switch Traffic to Green
+        run: |
+          kubectl patch service cart-service -p '{"spec":{"selector":{"app":"cart-service", "version":"green"}}}'
+          echo "Traffic switched to Green"
+
       - name: Verify Deployment Status
         run: |
           kubectl get deployments -o wide
