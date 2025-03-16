@@ -20,6 +20,7 @@ def metrics():
 def home():
     REQUEST_COUNT.inc()  # Increment counter
     return "Catalog Service Running"
+
 class Product(db.Model):
     __tablename__ = 'products'  # 显式指定表名
     id = db.Column(db.Integer, primary_key=True)
@@ -57,3 +58,4 @@ if __name__ == '__main__':
             # db.session.add(Product(name="Team Topologies", price=34.99))
             db.session.commit()
     app.run(host='0.0.0.0', port=5001)
+
