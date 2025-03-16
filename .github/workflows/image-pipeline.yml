@@ -105,7 +105,7 @@ jobs:
 
       - name: Deploy Green Version
         run: |
-            kubectl apply -f bookstore/catalog-service/catalog-service-green.yaml
+            kubectl apply -f catalog-service-green.yaml
             kubectl set image deployment/catalog-service-green \
               catalog-service=europe-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/bookstore-repo/catalog-service:${{ github.sha }} --record
 
