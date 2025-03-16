@@ -94,6 +94,15 @@ jobs:
           location: ${{ secrets.GKE_ZONE }}              # europe-west2（区域）
           project_id: ${{ secrets.GCP_PROJECT_ID }}      # csc8113
 
+      - name: Update Kubernetes Deployments
+        run: |
+          # 更新每个服务的镜像版本
+          for service in catalog-service cart-service frontend; do
+            kubectl set image deployment/$service \
+              $service=${{ secrets.GCR_REGISTRY }}/$service:${{ github.sha }} \
+              --record
+          done
+
       - name: Deploy Green Version
         run: |
           kubectl apply -f catalog-green-deployment.yaml
@@ -106,15 +115,6 @@ jobs:
         run: |
           kubectl patch service catalog-service -p '{"spec":{"selector":{"app":"cart-service", "version":"green"}}}'
           echo "Traffic switched to Green"
-
-      - name: Update Kubernetes Deployments
-        run: |
-          # 更新每个服务的镜像版本
-          for service in catalog-service cart-service frontend; do
-            kubectl set image deployment/$service \
-              $service=${{ secrets.GCR_REGISTRY }}/$service:${{ github.sha }} \
-              --record
-          done
 
       - name: Verify Deployment Status
         run: |
