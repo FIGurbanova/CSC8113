@@ -1,48 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cart-service-blue
+  name: cart-service
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: cart-service
-      version: blue
   template:
     metadata:
       labels:
         app: cart-service
-        version: blue
     spec:
       containers:
         - name: cart-service
-          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/cart-service::{{IMAGE_TAG}}
+          image: 054037139574.dkr.ecr.eu-west-2.amazonaws.com/cart-service:2.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
-
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cart-service-green
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: cart-service
-      version: green
-  template:
-    metadata:
-      labels:
-        app: cart-service
-        version: green
-    spec:
-      containers:
-        - name: cart-service
-          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/cart-service::{{IMAGE_TAG}}
-          ports:
-            - containerPort: 8080
-
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://bookstore-db:5432/bookstore"  # 修正数据库服务名
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
 ---
 apiVersion: v1
 kind: Service
