@@ -103,29 +103,6 @@ jobs:
               --record
           done
 
-      - name: Deploy Green Version
-        env:
-          GCR_REGISTRY: europe-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/bookstore-repo
-        run: |
-          case "${{ matrix.service }}" in
-           "catalog-service")
-              cd catalog-service
-              docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:v2 .
-              docker push $GCR_REGISTRY/catalog-service:v2
-            ;;
-           kubectl apply -f catalog-green-deployment.yaml
-           esac
-            
-
-      - name: Check Green Deployment Health
-        run: |
-          kubectl rollout status deployment/catalog-green-deployment
-
-      - name: Switch Traffic to Green
-        run: |
-          kubectl patch service catalog-service -p '{"spec":{"selector":{"app":"cart-service", "version":"green"}}}'
-          echo "Traffic switched to Green"
-
       - name: Verify Deployment Status
         run: |
           kubectl get deployments -o wide
