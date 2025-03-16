@@ -57,11 +57,6 @@ jobs:
               docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:$IMAGE_TAG .
               docker push $GCR_REGISTRY/catalog-service:$IMAGE_TAG
               ;;
-            "catalog-service")
-              cd catalog-service
-              docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:v2 .
-              docker push $GCR_REGISTRY/catalog-service:v2
-              ;;
             "cart-service")
               cd cart-service
               docker build --platform linux/amd64 -t $GCR_REGISTRY/cart-service:$IMAGE_TAG .
@@ -109,8 +104,18 @@ jobs:
           done
 
       - name: Deploy Green Version
+        env:
+          GCR_REGISTRY: europe-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/bookstore-repo
         run: |
-            kubectl apply -f catalog-green-deployment.yaml
+          case "${{ matrix.service }}" in
+           "catalog-service")
+              cd catalog-service
+              docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:v2 .
+              docker push $GCR_REGISTRY/catalog-service:v2
+            ;;
+           kubectl apply -f catalog-green-deployment.yaml
+           esac
+            
 
       - name: Check Green Deployment Health
         run: |
