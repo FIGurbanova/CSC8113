@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: catalog-service
-          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/catalog-service:6921558ef0116b4b703f2b7561b070b9556230e9
+          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/catalog-service::{{IMAGEY_TAG}}
           imagePullPolicy: Always
           ports:
             - containerPort: 5001
