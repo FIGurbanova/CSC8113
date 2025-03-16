@@ -1,4 +1,4 @@
-from flask import Flask, jsonify,Response
+from flask import Flask,jsonify,Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
