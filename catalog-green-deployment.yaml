@@ -1,4 +1,3 @@
-# green-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,18 +15,21 @@ spec:
         version: green
     spec:
       containers:
-      - name: catalog-service
-        image: europe-west2-docker.pkg.dev/csc81113-453518/bookstore-repo/catalog-service:v2
-        imagePullPolicy: Always
-        ports:
+        - name: catalog-service
+          image: europe-west2-docker.pkg.dev/csc8113-453518/bookstore-repo/catalog-service:3.0
+          imagePullPolicy: Always
+          ports:
             - containerPort: 5001
-        env:
+          env:
             - name: SQLALCHEMY_DATABASE_URI
               value: "postgresql://postgres:mysecretpassword@bookstore-db:5432/bookstore"
-        resources:
+          resources:
             requests:
               cpu: 200m
               memory: 256Mi
             limits:
               cpu: 500m
               memory: 512Mi
+
+
+
