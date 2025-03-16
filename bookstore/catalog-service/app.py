@@ -59,3 +59,4 @@ if __name__ == '__main__':
             # db.session.add(Product(name="Team Topologies", price=34.99))
             db.session.commit()
     app.run(host='0.0.0.0', port=5001)
+
