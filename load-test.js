@@ -1,21 +1,30 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { Counter, Rate, Trend } from 'k6/metrics';
+
+// Custom metrics (DO NOT redefine http_req_duration)
+export let latency = new Trend('csc8113_http_req_duration'); // ✅ Use a different name
+export let errors = new Rate('http_errors');
+export let requests = new Counter('http_requests');
 
 export let options = {
   stages: [
-    { duration: '1m', target: 100 },  // Ramp up to 100 users in 1 min
-    { duration: '3m', target: 1000 },  // Hold at 500 users for 3 mins
-    { duration: '1m', target: 0 },    // Ramp down
+    { duration: '1m', target: 100 },
+    { duration: '3m', target: 500 },
+    { duration: '1m', target: 0 },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<500'],  // 95% requests should be < 500ms
+    http_req_duration: ['p(95)<500'],  // ✅ Use built-in metric correctly
   },
 };
 
 export default function () {
- // your catalog-service external ip
-   let res = http.get('http://35.246.15.37/api/products'); 
+  let res = http.get('http://35.246.15.37/api/products');
+
+  latency.add(res.timings.duration); // ✅ Use custom metric instead
+  requests.add(1);
+  errors.add(res.status !== 200);
+
   check(res, { 'status is 200': (r) => r.status === 200 });
   sleep(1);
-
 }
