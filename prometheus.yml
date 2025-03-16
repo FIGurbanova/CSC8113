@@ -12,4 +12,4 @@ scrape_configs:
 
   - job_name: 'my_application'
     static_configs:
-      - targets: ['35.246.15.37:80']  # Make sure your app exposes metrics
+      - targets: ['34.147.167.137:80']  # Make sure your app exposes metrics
