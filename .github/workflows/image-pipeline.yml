@@ -57,6 +57,11 @@ jobs:
               docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:$IMAGE_TAG .
               docker push $GCR_REGISTRY/catalog-service:$IMAGE_TAG
               ;;
+            "catalog-service")
+              cd catalog-service
+              docker build --platform linux/amd64 -t $GCR_REGISTRY/catalog-service:v2 .
+              docker push $GCR_REGISTRY/catalog-service:v2
+              ;;
             "cart-service")
               cd cart-service
               docker build --platform linux/amd64 -t $GCR_REGISTRY/cart-service:$IMAGE_TAG .

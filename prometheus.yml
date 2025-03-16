@@ -13,3 +13,16 @@ scrape_configs:
   - job_name: 'my_application'
     static_configs:
       - targets: ['35.197.209.224:5001']  # Make sure your app exposes metrics
+
+ # 🚀 Kubelet (Container & Pod Metrics)
+  - job_name: 'kubelet'
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets: ['localhost:10250']  # Replace <NODE_IP> with actual node IP
+
+  # 🚀 cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']  # Default port for cAdvisor
