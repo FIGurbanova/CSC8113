@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
 
+
 app = Flask(__name__)
 CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:mysecretpassword@bookstore-db:5432/bookstore'
