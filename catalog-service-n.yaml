@@ -1,10 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: catalog-service
+  name: catalog-service-deploy
 spec:
   selector:
     app: catalog-service
+    version: blue # Initially, it will send traffic to Blue pods
   ports:
     - protocol: TCP
       port: 5001

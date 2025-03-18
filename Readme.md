@@ -1656,37 +1656,61 @@ export default function () {
 k6 run load-test.js  
 
 
-## Blue Green Deployment
+## Blue Green Deployment for Zero deployment
 
 ## Create two different files for blue and green deployments
 
-catalog-blue-deployment.yaml with the blue version
+create catalog-blue-deployment.yaml  
+Catalog-service-n.yaml - Intially it is pointed to blue version
+Deploy the Blue Version (Current running application) with 3 replicas are running initially
+>kubectl apply -f catalog-blue-deployment.yaml
 
-Run the Docker file to build the new image, tag it and push it , attach the path at the image path
-Catalog-green-deployment.yaml with green version 
+Deploy the Common Kubernetes Service
+This Service will route traffic to the active version based on labels.You can control which version receives traffic by adjusting the replica counts or updating the selector labels.
+Create catalog-service-n.yaml
+> kubectl apply -f catalog-service-n.yaml
 
-one common service file to switch between the both
-Catalog-service-n.yaml  with current version as blue later switched it to green(new version).
-This service will initially route traffic to both versions (Blue and Green). You can control which version receives traffic by adjusting the replica counts or updating the selector labels.
- 
+Deploy the Blue version with a Kubernetes Deployment and Service.
+Now Blue is live, and the Service is routing traffic to it.
+
+Deploy the Green Version but will Keep It Scaled Down
+create catalog-green-deployment.yaml
+The Green version is created but with replicas: 0 (not receiving traffic yet).
+> kubectl apply -f catalog-green-deployment.yaml  
+Now Green is deployed but inactive (scaled to 0 pods).
+
+before deploying the green deployemnet Run the Docker file to build the new image, tag it and push it , attach the path at the image path
+Catalog-green-deployment.yaml with green version
+
 ## Switch Traffic Between Blue and Green Versions
-Once both Blue and Green versions are deployed, you can switch the traffic to the Green version by adjusting the Kubernetes deployment replicas or updating the service's selector.
+Once both Blue and Green versions are deployed, you can switch the traffic between them by adjusting the Kubernetes deployment replicas or updating the service's selector.
 
-1. Scale the Green deployment up to handle all traffic:
->kubectl scale deployment catalog-service-green --replicas=2
+Gradually Scale Up Green and Scale Down Blue
+To shift traffic safely, we gradually scale up Green and scale down Blue.
+1. Scale up Green
+> kubectl scale deployment catalog-service-green --replicas=2
 
-2. Scale the Blue deployment down to zero so that no traffic is routed to the Blue version:
+GKE LoadBalancer will distribute traffic between Blue & Green.
+(Since the Service still points to "blue", traffic distribution is automatic based on available pods.)
+
+2. Scale the Blue deployment gradually down to zero so that no traffic is routed to the Blue version:
+>kubectl scale deployment catalog-service-blue --replicas=2
+>
+>kubectl scale deployment catalog-service-blue --replicas=1
+>
 >kubectl scale deployment catalog-service-blue --replicas=0
- Now, all traffic will be routed to the Green version.
+
+Now,Blue is at 0 replicas all traffic will be routed to the Green version.
 
 ## Rollback if needed (Blue-Green)
- If something goes wrong with the Green deployment, you can always roll back to the Blue version.
+If something goes wrong with the Green deployment, you can always roll back to the Blue version.
 1.	Scale the Green deployment down:
 >kubectl scale deployment catalog-service-green --replicas=0
 
 2.	Scale the Blue deployment back up:
->kubectl scale deployment catalog-service-blue --replicas=2
+>kubectl scale deployment catalog-service-blue --replicas=3
+This brings back the Blue version, but some traffic may still be hitting Green
 
-This will route traffic back to the Blue version and allow you to fix the Green version.
-
+# Liveness and Readiness of Cart service
+kubectl exec -it <cart-service-name> -- curl -v http://localhost:8080/actuator/health
 
