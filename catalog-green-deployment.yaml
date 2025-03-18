@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: catalog-service-green
 spec:
-  replicas: 2
+  replicas: 0 # Not running yet
   selector:
     matchLabels:
       app: catalog-service

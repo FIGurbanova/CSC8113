@@ -12,7 +12,7 @@ scrape_configs:
 
   - job_name: 'my_application'
     static_configs:
-      - targets: ['35.197.209.224:5001']  # Make sure your app exposes metrics
+      - targets: ['35.197.209.224:5001']
 
  # 🚀 Kubelet (Container & Pod Metrics)
   - job_name: 'kubelet'
