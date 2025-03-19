@@ -1714,3 +1714,26 @@ This brings back the Blue version, but some traffic may still be hitting Green
 # Liveness and Readiness of Cart service
 kubectl exec -it <cart-service-name> -- curl -v http://localhost:8080/actuator/health
 
+
+# gcloud compute forwarding-rules list --regions=europe-west
+
+# a5db0b96ea50d4364b519b41a65deb6e  35.242.177.96  is green
+# a228ae1d74d5549509ee70dd0a2dbd87  34.105.250.102  blue
+
+# Health check
+>  gcloud compute target-pools get-health a5db0b96ea50d4364b519b41a65deb6e --region=europe-west2
+>  gcloud compute target-pools get-health a228ae1d74d5549509ee70dd0a2dbd87 --region=europe-west2
+
+> gcloud compute forwarding-rules update a228ae1d74d5549509ee70dd0a2dbd87 --target-pool=a5db0b96ea50d4364b519b41a65deb6e --region=europe-west2
+ 
+> gcloud compute forwarding-rules delete a228ae1d74d5549509ee70dd0a2dbd87 --region=europe-west2
+
+# Shifting traffic from blue to green
+> gcloud compute forwarding-rules create a228ae1d74d5549509ee70dd0a2dbd87 --target-pool=a5db0b96ea50d4364b519b41a65deb6e --region=europe-west2 --ports=5001
+
+# Blue target points to green
+> gcloud compute forwarding-rules describe a228ae1d74d5549509ee70dd0a2dbd87 --region=europe-west2
+
+> gcloud compute target-pools describe a5db0b96ea50d4364b519b41a65deb6e --region=europe-west2
+
+> kubectl logs -l app=catalog-service --tail=100  
